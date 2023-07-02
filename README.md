@@ -1,40 +1,42 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+<h1> <img src="pics/icon.png" style="display: inline-block; height: .95em; margin-right: 5px; margin-bottom: -5px"/> FigJam flowchart diagram to JSON</h1>
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
+![Flowchart to JSON Illustration](pics/header.png)
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+Select the root element, and run the plugin. It will generate a JSON representation of the graph interpretation the flowchart. There are two types of entities: `nodes` and `edges`, which model the relation of the flowchart elements. A Node is a, in this case a purple, box with text inside, and an edge is a line connecting the two nodes. All sorts of properties are stored on a node or edge, such as the text, the color and its connections.
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+## Usage
 
-  https://nodejs.org/en/download/
+Install it on the [figma community](https://www.figma.com/community/plugins) and try it out [here](https://www.figma.com/file/uPuwak5XnvgpCehHTmDOqI/Untitled?type=whiteboard&t=7YEtTS0RuRqzHCyE-6). Select a root node and run the plugin. It will copy the JSON to your clipboard (if possible).
 
-Next, install TypeScript using the command:
+### Parsing
 
-  npm install -g typescript
+Note that the resulting JSON may be cyclic, by the nature of the flowchart. These kinds of JSONs can be parsed with the library [circ-json](https://www.npmjs.com/package/circ-json)!
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+## API
 
-  npm install --save-dev @figma/plugin-typings
+```typescript
+interface Element {
+  text: string;
+  id: string;
+  type: "NODE" | "EDGE",
+}
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
 
-For more information, visit https://www.typescriptlang.org/
+interface Edge extends Element {
+  from: Node,
+  to?: Node,
+  fromSide?: 'NONE' | 'AUTO' | 'TOP' | 'LEFT' | 'BOTTOM' | 'RIGHT',
+  toSide?: 'NONE' | 'AUTO' | 'TOP' | 'LEFT' | 'BOTTOM' | 'RIGHT',
+  color?: {r: number, g: number, b: number},
+  edgeType: 'ELBOWED' | 'STRAIGHT',
+  directional: "UNI" | "BI"
+}
 
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
+interface Node extends Element {
+  edges: Edge[],
+  color?: {r: number, g: number, b: number}
+}
+```
 
-We recommend writing TypeScript code using Visual Studio code:
-
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
-
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+It will always start with a node.
