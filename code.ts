@@ -23,6 +23,34 @@ const ui = {
 }
 
 
+const arrowLike = ["ARROW_LINES", "ARROW_EQUILATERAL"]
+function computeDirectionOfEdge(connector: ConnectorNode) {
+  if (arrowLike.includes(connector.connectorEndStrokeCap)) {
+    if (arrowLike.includes(connector.connectorStartStrokeCap)) {
+      return {directional: "BI"} as const
+    }
+    else {
+      return {dir: {
+        to: "connectorEnd",
+        from: "connectorStart"
+      }, directional: "UNI"} as const
+    }
+  }
+  else {
+    if (arrowLike.includes(connector.connectorStartStrokeCap)) {
+      return {dir: {
+        to: "connectorStart",
+        from: "connectorEnd"
+      }, directional: "UNI"} as const
+    }
+    else {
+      return {directional: "BI"} as const
+    }
+  }
+
+}
+
+
 // get all selected nodes
 figma.skipInvisibleInstanceChildren = true
 
@@ -39,21 +67,23 @@ interface Element {
 interface Edge extends Element {
   from: Node,
   to?: Node,
-  fromSide: ConnectorEndpointEndpointNodeIdAndMagnet["magnet"]
+  fromSide?: ConnectorEndpointEndpointNodeIdAndMagnet["magnet"]
   toSide?: ConnectorEndpointEndpointNodeIdAndMagnet["magnet"]
-  // color?: string,
-  edgeType: ConnectorNode["connectorLineType"]
+  color?: {r: number, g: number, b: number},
+  edgeType: ConnectorNode["connectorLineType"],
+  directional: "UNI" | "BI"
 }
 
 interface Node extends Element {
   edges: Edge[],
-  color?: string,
+  color?: {r: number, g: number, b: number},
   nodeType: SceneNode["type"],
 }
 
 
 
 
+const knownEdges = new Set<string>();
 const knownNodes = new Map<string, Node>();
 function traverse(node: SceneNode) {
   if (knownNodes.has(node.id)) {
@@ -72,27 +102,54 @@ function traverse(node: SceneNode) {
 
   knownNodes.set(node.id, myNode);
 
-  for (const connectors of node.attachedConnectors) {
+  for (const connector of node.attachedConnectors) {
+    if (knownEdges.has(connector.id)) {
+      console.log(connector)
+      
+      continue
+    }
+    
+    
+    const {directional, dir} = computeDirectionOfEdge(connector);
+
+
+    const from = directional === "BI" ? (connector.connectorStart as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId === myNode.id ? "connectorStart" : "connectorEnd" : dir.from;
+
+    const fromIsMy = (connector[from] as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId === myNode.id;
+    if (!fromIsMy) continue
+
+    const to = directional === "BI" ? (connector.connectorEnd as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId === myNode.id ? "connectorEnd" : "connectorStart" : dir.to;
+    
+
     const edge: Edge = {
-      text: connectors.name,
-      id: connectors.id,
-      type: "EDGE",
+      text: connector.name,
+      id: connector.id,
       from: myNode,
-      fromSide: (connectors.connectorStart as ConnectorEndpointEndpointNodeIdAndMagnet)?.magnet,
-      toSide: (connectors.connectorStart as ConnectorEndpointEndpointNodeIdAndMagnet)?.magnet,
-      edgeType: connectors.connectorLineType
+      type: "EDGE",
+      color: (connector.strokes[0] as SolidPaint)?.color,
+      fromSide: (connector[from] as ConnectorEndpointEndpointNodeIdAndMagnet)?.magnet,
+      toSide: (connector[to] as ConnectorEndpointEndpointNodeIdAndMagnet)?.magnet,
+      edgeType: connector.connectorLineType,
+      directional
     }
     edges.push(edge);
-    
-    const endpointNodeId = (connectors.connectorEnd as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId
-    
-    if (endpointNodeId) {
-      const toNode = getNodeFromId(endpointNodeId);
 
-      if (toNode && !toNode.removed && toNode.type !== "DOCUMENT" && toNode.type !== "PAGE") {
-        edge.to = traverse(toNode);
+    
+    
+    const otherEndpointNodeId = (connector[to] as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId
+
+
+    
+    if (otherEndpointNodeId) {
+      const otherNode = getNodeFromId(otherEndpointNodeId);
+
+      if (otherNode && !otherNode.removed && otherNode.type !== "DOCUMENT" && otherNode.type !== "PAGE") {
+        edge.to = traverse(otherNode);
       }
+      
     }
+
+    knownEdges.add(connector.id);
   }
 
 
