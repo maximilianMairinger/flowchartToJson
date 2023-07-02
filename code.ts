@@ -76,8 +76,7 @@ interface Edge extends Element {
 
 interface Node extends Element {
   edges: Edge[],
-  color?: {r: number, g: number, b: number},
-  nodeType: SceneNode["type"],
+  color?: {r: number, g: number, b: number}
 }
 
 
@@ -96,8 +95,7 @@ function traverse(node: ShapeWithTextNode) {
     id: node.id,
     type: "NODE",
     edges,
-    color: (node as any)?.fills[0]?.color,
-    nodeType: node.type
+    color: (node as any)?.fills[0]?.color
   }
 
   knownNodes.set(node.id, myNode);
