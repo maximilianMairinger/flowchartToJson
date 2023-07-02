@@ -21,8 +21,6 @@ interface Element {
   type: "NODE" | "EDGE",
 }
 
-
-
 interface Edge extends Element {
   from: Node,
   to?: Node,

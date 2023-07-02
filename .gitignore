@@ -8,3 +8,4 @@ dist/
 code.js
 package-lock.json
 .vscode
+.DS_Store
