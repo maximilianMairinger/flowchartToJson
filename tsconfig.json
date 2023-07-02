@@ -1,11 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es6",
     "lib": ["es6"],
     "strict": true,
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@figma"
-    ]
-  }
+    ],
+    "module": "esnext",
+    "target": "es6",
+    "esModuleInterop": false,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    // "resolveJsonModule": true,
+    "allowJs": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "code.ts",
+    "node_modules/circ-clone"
+  ]
 }

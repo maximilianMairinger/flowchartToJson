@@ -1,16 +1,31 @@
 {
   "name": "flowchartToJson",
   "version": "1.0.0",
-  "description": "Your Figma Plugin",
+  "description": "Converts a FigJam flowchart to json",
   "main": "code.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "npm run build -- --watch"
+    "build": "rollup --config rollup.web.prod.config.mjs",
+    "dev": "rollup --config rollup.web.dev.config.mjs -w"
   },
   "author": "",
   "license": "",
   "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
+    "@babel/preset-env": "^7.22.5",
     "@figma/plugin-typings": "*",
-    "typescript": "*"
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^25.0.2",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@rollup/plugin-typescript": "^11.1.2",
+    "@types/node": "^20.3.3",
+    "rollup": "^3.26.0",
+    "typescript": "*",
+    "webpack-merge": "^5.9.0"
+  },
+  "dependencies": {
+    "circ-json": "^1.0.4"
   }
 }
