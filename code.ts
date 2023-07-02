@@ -1,13 +1,34 @@
 import { stringify } from "circ-json"
 
+
+
+
+const ui = {
+  log: (message: string, options: Omit<NotificationOptions, "error"> = {timeout: 2000}) => {
+    let n: NotificationHandler;
+    const prom = new Promise<NotifyDequeueReason>((res) => {
+      n = figma.notify(message, {...options, onDequeue: res});  
+    }) as Promise<NotifyDequeueReason> & {cancel: () => void}
+    prom.cancel = () => {n.cancel()}
+    return prom;
+  },
+  error: (message: string, options: Omit<NotificationOptions, "error" | "onDequeue"> = {timeout: 2000}) => {
+    let n: NotificationHandler;
+    const prom = new Promise<NotifyDequeueReason>((res) => {
+      n = figma.notify(message, {...options, error: true, onDequeue: res});  
+    }) as Promise<NotifyDequeueReason> & {cancel: () => void}
+    prom.cancel = () => {n.cancel()}
+    return prom;
+  }
+}
+
+
 // get all selected nodes
 figma.skipInvisibleInstanceChildren = true
 
 function getNodeFromId(id: string) {
   return figma.getNodeById(id);
 }
-
-console.log([] ?? "hello")
 
 interface Element {
   text: string;
@@ -82,21 +103,40 @@ function traverse(node: SceneNode) {
 const selection = figma.currentPage.selection;
 
 if (selection.length !== 1) {
-  // warn the user if
-  figma.notify("Please select a single node as root", {
-    error: true
-  });
-  figma.closePlugin();
+  (async () => {
+    await ui.error("Please select a single node as root")
+    figma.closePlugin();
+  })()
 }
 else {
-  // traverse the node
   const node = traverse(selection[0]);
   console.log(node);
-  console.log(stringify(node));
+  const stringified = stringify(node, 2);
+  console.log(stringified);
 
-  
 
-  figma.closePlugin();
+
+  (async () => {
+    // open window with stringified json inside
+    figma.showUI(__html__, { themeColors: true, width: 500, height: 400 })
+    figma.ui.postMessage(stringified)
+
+    // wait for message from window
+    figma.ui.onmessage = async (msg) => {
+      if (msg.type === "copy-success") {
+        figma.ui.close()
+        await ui.log("Copied to clipboard")
+      }
+      else if (msg.type === "copy-fail") {
+        // await ui.error("Failed to copy to clipboard")
+      }
+
+      figma.closePlugin();
+    }
+    
+    
+  })()
+
 }
 
 
