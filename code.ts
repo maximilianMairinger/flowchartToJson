@@ -85,7 +85,7 @@ interface Node extends Element {
 
 const knownEdges = new Set<string>();
 const knownNodes = new Map<string, Node>();
-function traverse(node: SceneNode) {
+function traverse(node: ShapeWithTextNode) {
   if (knownNodes.has(node.id)) {
     return knownNodes.get(node.id);
   }
@@ -104,8 +104,6 @@ function traverse(node: SceneNode) {
 
   for (const connector of node.attachedConnectors) {
     if (knownEdges.has(connector.id)) {
-      console.log(connector)
-      
       continue
     }
     
@@ -118,7 +116,7 @@ function traverse(node: SceneNode) {
     const fromIsMy = (connector[from] as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId === myNode.id;
     if (!fromIsMy) continue
 
-    const to = directional === "BI" ? (connector.connectorEnd as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId === myNode.id ? "connectorEnd" : "connectorStart" : dir.to;
+    const to = directional === "BI" ? (connector.connectorStart as ConnectorEndpointEndpointNodeIdAndMagnet)?.endpointNodeId === myNode.id ? "connectorEnd" : "connectorStart" : dir.to;
     
 
     const edge: Edge = {
@@ -143,7 +141,7 @@ function traverse(node: SceneNode) {
     if (otherEndpointNodeId) {
       const otherNode = getNodeFromId(otherEndpointNodeId);
 
-      if (otherNode && !otherNode.removed && otherNode.type !== "DOCUMENT" && otherNode.type !== "PAGE") {
+      if (otherNode && otherNode.type === "SHAPE_WITH_TEXT") {
         edge.to = traverse(otherNode);
       }
       
@@ -166,37 +164,42 @@ if (selection.length !== 1) {
   })()
 }
 else {
-  const node = traverse(selection[0]);
-  console.log(node);
-  const stringified = stringify(node, 2);
-  console.log(stringified);
-
-
-
-  (async () => {
-    // open window with stringified json inside
-    figma.showUI(__html__, { themeColors: true, width: 500, height: 400 })
-    figma.ui.postMessage(stringified)
-
-    // wait for message from window
-    figma.ui.onmessage = async (msg) => {
-      if (msg.type === "copy-success") {
-        figma.ui.close()
-        await ui.log("Copied to clipboard")
-      }
-      else if (msg.type === "copy-fail") {
-        // await ui.error("Failed to copy to clipboard")
-      }
-
+  const elem = selection[0];
+  if (elem.type !== "SHAPE_WITH_TEXT") {
+    (async () => {
+      await ui.error("Please select a node (a box with text inside) in your flowchart as root")
       figma.closePlugin();
-    }
-    
-    
-  })()
+    })()
+  }
+  else {
+    const rootNode = traverse(elem);
+    console.log(rootNode);
+    const stringified = stringify(rootNode, 2);
+    console.log(stringified);
+  
+  
+  
+    (async () => {
+      // open window with stringified json inside
+      figma.showUI(__html__, { themeColors: true, width: 500, height: 400 })
+      figma.ui.postMessage(stringified)
+  
+      // wait for message from window
+      figma.ui.onmessage = async (msg) => {
+        if (msg.type === "copy-success") {
+          figma.ui.close()
+          await ui.log("Copied to clipboard")
+        }
+        else if (msg.type === "copy-fail") {
+          // await ui.error("Failed to copy to clipboard")
+        }
+  
+        figma.closePlugin();
+      }
+      
+      
+    })()
+  }
+  
 
 }
-
-
-// Make sure to close the plugin when you're done. Otherwise the plugin will
-// keep running, which shows the cancel button at the bottom of the screen.
-// figma.closePlugin();
