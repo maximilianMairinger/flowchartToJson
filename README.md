@@ -6,7 +6,7 @@ Select the root element, and run the plugin. It will generate a JSON representat
 
 ## Usage
 
-Install it on the [figma community](https://www.figma.com/community/plugins) and try it out [here](https://www.figma.com/file/uPuwak5XnvgpCehHTmDOqI/Untitled?type=whiteboard&t=7YEtTS0RuRqzHCyE-6). Select a root node and run the plugin. It will copy the JSON to your clipboard (if possible).
+Install it on the [figma community](https://www.figma.com/community/plugin/1257283022168373227) and try it out [here](https://www.figma.com/file/uPuwak5XnvgpCehHTmDOqI/Untitled?type=whiteboard&t=7YEtTS0RuRqzHCyE-6). Select a root node and run the plugin. It will copy the JSON to your clipboard (if possible).
 
 ### Parsing
 
