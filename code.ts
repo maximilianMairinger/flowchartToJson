@@ -187,14 +187,16 @@ else {
         if (msg.type === "copy-success") {
           figma.ui.close()
           await ui.log("Copied to clipboard")
+          figma.closePlugin();
         }
         else if (msg.type === "copy-fail") {
-          // await ui.error("Failed to copy to clipboard")
+          await ui.error("Failed to copy to clipboard")
+          // we can leave the window open and just do nothing. When the user closes the window, the plugin will close automatically
         }
+
   
-        figma.closePlugin();
+        
       }
-      
       
     })()
   }
