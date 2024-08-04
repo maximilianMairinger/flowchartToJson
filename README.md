@@ -1,4 +1,8 @@
-<h1> <img src="pics/icon.png" style="display: inline-block; height: .95em; margin-right: 5px; margin-bottom: -5px"/> FigJam flowchart diagram to JSON</h1>
+<h3 align="left">
+  <img src="pics/icon.png" height="300px"/>
+</h3>
+
+<h1>FigJam flowchart diagram to JSON</h1>
 
 ![Flowchart to JSON Illustration](pics/header.png)
 
