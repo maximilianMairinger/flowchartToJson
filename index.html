@@ -111,7 +111,7 @@
         appElem.innerText = json
         const suc = await copyToClipBoard(json)
 
-        if (!suc) {
+        if (suc) {
           parent.postMessage({ pluginMessage: { type: 'copy-success' } }, '*')
         }
         else {
